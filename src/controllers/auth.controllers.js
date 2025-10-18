@@ -9,13 +9,15 @@ import { ApiResponse } from "../utils/api-response.js";
 import jwt from "jsonwebtoken";
 import { ApiError } from "../utils/api-error.js";
 import { error } from "console";
+import crypto from "crypto";
+import { access } from "fs";
 
 const generateRefreshAccessTokens = async (userId) => {
   try {
     const user = await User.findById(userId);
 
-    const accessToken = user.generateAccessToken();
-    const refreshToken = user.generateRefreshToken();
+    const accessToken = await user.generateAccessToken();
+    const refreshToken = await user.generateRefreshToken();
 
     user.refreshToken = refreshToken;
 
@@ -36,7 +38,7 @@ const registerUser = asyncHandler(async (req, res) => {
   if (!email || !username || !password || !role) {
     throw new ApiError(400, "All fields are required");
   }
-  const existingUser = await User.findone({ email });
+  const existingUser = await User.findOne({ email });
   if (existingUser) {
     throw new ApiError(409, "User with email or username already exist");
   }
@@ -47,12 +49,12 @@ const registerUser = asyncHandler(async (req, res) => {
     isEmailVerified: false,
   });
 
-  const { unHashedToken, hashedToken, tokenExpiry } = newUser.gernerateTemporaryToken();
+  const { unHashedToken, hashedToken, tokenExpiry } = newUser.generateTemporaryToken();
   newUser.emailVerificationToken = hashedToken;
   newUser.emailVerificationExpiry = tokenExpiry;
   await newUser.save({ validateBeforeSave: false });
 
-  const verificationUrl = `${req.protocol}://${req.get("host")}/api/v1/users/verify-email?${unHashedToken}`;
+  const verificationUrl = `${req.protocol}://${req.get("host")}/api/v1/users/verify-email/${unHashedToken}`;
 
   const mailgenContent = emailVerificationMailgenContent(
     newUser.username,
@@ -124,19 +126,20 @@ const login = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Password is required");
   }
 
-  const user = await User.findone({$or: [{username}, {email}]});
+  const user = await User.findOne({$or: [{username}, {email}]});
   if (!user) {
     throw new ApiError(400, "User does not exist");
   }
   const isPasswordMatch = await user.isPasswordCorrect(password);
 
-  console.log(isMatch);
+  console.log(isPasswordMatch);
 
   if (!isPasswordMatch) {
     throw new ApiError(400, "Invalid user cradentials");
   }
 
-  const {refreshToken, accessToken} = generateRefreshAccessTokens(user._id);
+  const {accessToken, refreshToken} = await generateRefreshAccessTokens(user._id);
+
 
   const loggedInUser = await User.findById(user._id).select("-password -refreshToken -emailVerificationToken -emailVerificationExpiry");
 
@@ -144,7 +147,11 @@ const login = asyncHandler(async (req, res) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     maxAge: 24 * 60 * 60 * 1000,
+    sameSite: "Lax",
+    path: "/",
+    
   };
+  
 
   res
     .status(200)
@@ -183,6 +190,8 @@ const logout = asyncHandler(async (req, res) => {
   const cookieOptions = {
     httpOnly:true,
     secure: process.env.NODE_ENV === "production",
+    sameSite: "Lax",
+    path: "/",
   }
 
   res
@@ -205,7 +214,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
     throw new ApiError(404, "User does not exist");
   }
   const { hashedToken, unHashedToken, tokenExpiry } =
-    user.gernerateTemporaryToken();
+    await user.generateTemporaryToken();
 
   user.forgotPasswordToken = hashedToken;
   user.forgotPasswordExpiry = tokenExpiry;
@@ -232,18 +241,18 @@ const forgotPassword = asyncHandler(async (req, res) => {
 // reset password
 
 const resetPassword = asyncHandler(async (req, res) => {
-  const { resetToken } = req.query;
+  const { resetToken } = req.params;
   const { newPassword, confPassword } = req.body;
   if (newPassword != confPassword) {
     throw new ApiError(400, "Passwords did not match");
   }
 
-  if (!token || !newPassword || !confPassword) {
+  if (!resetToken || !newPassword || !confPassword) {
     throw new ApiError(400, "New password required");
   }
-  const hashedToken = crypto.createHash("sha265").update(resetToken).digest("hex");
+  const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
 
-  const user = User.findOne({
+  const user = await User.findOne({
     forgotPasswordToken: hashedToken,
     forgotPasswordExpiry: { $gt: Date.now() },
   });
@@ -349,8 +358,8 @@ const resendVerificationEmail = asyncHandler(async (req, res) => {
   }
 
   // generate new verification token
-  const { hashedToken, unHashedToken, tokenExpiry } =
-    user.gernerateTemporaryToken();
+  const { hashedToken, unHashedToken, tokenExpiry } = await
+    user.generateTemporaryToken();
 
   user.emailVerificationToken = hashedToken;
   user.emailVerificationExpiry = tokenExpiry;
@@ -389,8 +398,8 @@ const deleteAccount = asyncHandler(async (req, res) => {
     secure: process.env.NODE_ENV === "production",
   }
   res
-    .clearCookie("accessToken")
-    .clearCookie("refreshToken")
+    .clearCookie("accessToken", cookieOptions)
+    .clearCookie("refreshToken", cookieOptions)
     .status(200)
     .json(new ApiResponse(200, null, "Account deleted successfully"));
 });

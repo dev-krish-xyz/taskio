@@ -59,6 +59,12 @@ const userSchema = new Schema(
   },
 );
 
+// query helper function
+
+userSchema.query.safe = function (extra ="") {
+  return this.select("-password -refreshToken -emailVerificationToken -emailVerificationExpiry")
+}
+
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   this.password = await bcrypt.hash(this.password, 10);
@@ -70,7 +76,7 @@ userSchema.methods.isPasswordCorrect = async function (password) {
 };
 
 userSchema.methods.generateAccessToken = async function () {
-  jwt.sign(
+  return jwt.sign(
     {
       _id: this._id,
       email: this.email,
@@ -96,7 +102,7 @@ userSchema.methods.generateRefreshToken = async function () {
   );
 };
 
-userSchema.methods.generateTemporaryToken = function () {
+userSchema.methods.generateTemporaryToken = async  function () {
   const unHashedToken = crypto.randomBytes(20).toString("hex");
   const hashedToken = crypto
     .createHash("sha256")

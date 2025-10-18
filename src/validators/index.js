@@ -60,7 +60,8 @@ const userChangeCurrentPasswordValidator = () => {
         .withMessage("Old password is required"),
 
         body("newPassword")
-        .notEmpty("New password is required")
+        .notEmpty()
+        .withMessage("New password is required")
         .isStrongPassword()
         .withMessage("New password must be strong enough")
     ];
