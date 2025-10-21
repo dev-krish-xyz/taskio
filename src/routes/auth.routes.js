@@ -56,6 +56,7 @@ authRouter.route("/protected").get(verifyJWT, (req, res)=> {
 
 authRouter.route("/delete-account").post(verifyJWT,deleteAccount);
 
+
 export default authRouter;
 
 

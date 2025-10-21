@@ -407,7 +407,7 @@ const deleteAccount = asyncHandler(async (req, res) => {
 export {
 generateRefreshAccessTokens,
 registerUser,
-verifyEmail,
+verifyEmail, 
 login,
 logout,
 forgotPassword,
