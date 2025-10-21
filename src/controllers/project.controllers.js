@@ -1,6 +1,6 @@
 import mongoose, { mongo } from "mongoose";
 import {Project} from "../models/project.models.js";
-import {projectMember} from "../models/projectmember.models.js"
+import {ProjectMember} from "../models/projectmember.models.js"
 import { ApiError } from "../utils/api-error.js";
 import { ApiResponse } from "../utils/api-response.js";
 import { asyncHandler } from "../utils/async-handler.js";
@@ -11,7 +11,7 @@ import { User } from "../models/user.models.js"
 
 // getProjects
 const getProjects = asyncHandler(async (req, res) => {
-  const projects = await projectMember.aggregate([
+  const projects = await ProjectMember.aggregate([
     {
         $match: {
             user: new mongoose.Types.ObjectId(req.user._id),
@@ -94,7 +94,7 @@ const createProject = asyncHandler(async (req, res)=> {
         createdBy: new mongoose.Types.ObjectId(req.user._id),
     });
 
-    await projectMember.create({
+    await ProjectMember.create({
         user: new mongoose.Types.ObjectId(req.user._id),
         project: new mongoose.Types.ObjectId(project._id),
         role : UserRolesEnum.ADMIN,
@@ -162,7 +162,7 @@ const addMemberToProject = asyncHandler(async(req,res)=> {
         throw new ApiError(404, "User not found");
     }
 
-    await projectMember.findOneAndUpdate(
+    await ProjectMember.findOneAndUpdate(
         {
             user: new mongoose.Types.ObjectId(req.user._id),
             project: new mongoose.Types.ObjectId(projectId),
@@ -191,5 +191,9 @@ const getProjectMembers = asyncHandler(async(req, res) => {
     if(!project) {
         throw new ApiError(404, "Project not found");
     }
-    
+
+    const projectMembers = await ProjectMember.aggregate([
+        
+    ])
+
 })
