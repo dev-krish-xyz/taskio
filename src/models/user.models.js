@@ -2,6 +2,7 @@ import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import { stringify } from "querystring";
 
 
 const userSchema = new Schema(
@@ -22,6 +23,10 @@ const userSchema = new Schema(
       unique: true,
       trim: true,
       lowercase: true,
+    },
+    fullName: {
+      type: String,
+      trim : true,
     },
     email: {
       type: String,

@@ -193,7 +193,125 @@ const getProjectMembers = asyncHandler(async(req, res) => {
     }
 
     const projectMembers = await ProjectMember.aggregate([
-        
-    ])
+        {
+            $match: {
+                project: new mongoose.Types.ObjectId(projectid),
+            }
+        },
+        {
+            $lookup: {
+                from: "users",
+                localField: "user",
+                foreignField: "_id",
+                as: "user",
+                pipeline: [
+                    {
+                        $project: {
+                            _id: 1,
+                            username: 1,
+                            fullName: 1,
+                            avatar: 1
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            $addFields: {
+                user: {
+                    $arrayElemAt: ["$user", 0],
+                }
+            }
+        }, 
+        {
+            $project: {
+                project: 1,
+                user: 1,
+                role: 1,
+                createdAt : 1,
+                createdBy: 1,
+                _id: 0
+            }
+        }
+    ]);
+
+    res
+    .status(200)
+    .json(new ApiResponse(200,projectMembers,"Project members fetched successfully"));
 
 })
+
+// updateMemberRole 
+
+const updateMemberRole = asyncHandler(async(req, res)=> {
+    const {projectId, userId} = req.params;
+    const {newRole} = req.body;
+
+    if(!AvailableUserRoles.includes(newRole)) {
+        throw new ApiError(404,"Invalid user role");
+    }
+
+    const projectMember = await projectMember.findOne({
+        project: new mongoose.Types.ObjectId(projectId),
+        user: new mongoose.Types.ObjectId(userId)
+    });
+
+    if(!projectMember) {
+        throw new ApiError(404,"Project member not found");
+    }
+
+    projectMember = await ProjectMember.findByIdAndUpdate(
+       projectMember._id, 
+       {
+        role: newRole,
+       },
+       {
+        new: true,
+       },
+    );
+    if(!projectMember) {
+        throw new ApiError(404,"Project member not found");
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200,projectMember,"Project member updated successfully")
+    )
+});
+
+// deleteMember
+
+const deleteMember  = asyncHandler(async(req, res)=> {
+    const {projectId, userId} = req.params;
+    const currentUserId = req.user._id;
+
+    const currentUserMember = await ProjectMember.findOne({
+        project: projectId,
+        user: currentUserId
+    });
+
+    if(!currentUserMember || currentUserMember.role !== "ADMIN") {
+        throw new ApiError(403,"only admins can delete members");
+    }
+
+    const deletedMember = await ProjectMember.findOneAndDelete({
+        project: projectId,
+        user: userId,
+    });
+
+    return res.status(200).json(
+        new ApiResponse(200, deletedMember,"Project member deleted successfullly")
+    )
+    
+});
+
+export {
+    createProject,
+    deleteProject,
+    updateProject,
+    addMemberToProject,
+    updateMemberRole,
+    getProjectById,
+    getProjects,
+    getProjectMembers,
+    deleteMember,
+}
