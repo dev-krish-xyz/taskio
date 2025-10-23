@@ -19,6 +19,7 @@ app.use(express.urlencoded({extended: true}));
 app.use(cookieParser());
 app.use("/api/v1/users", authRouter);
 app.use("/api/v1/projects", projectRouter);
+app.use("/api/v1/project/", noteRouter);
 
 app.use(errorHandler);
 
