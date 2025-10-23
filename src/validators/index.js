@@ -4,6 +4,8 @@ import {
   AvailableUserRoles,
 } from "../utils/constants.js";
 
+// Auth Validators
+
 const userRegisterValidator = () => {
   return [
     body("email")
@@ -85,10 +87,47 @@ const userResetPasswordValidator = () => {
     ]
 }
 
+// Project Validators
+
+const createProjectValidator = () => {
+  return [
+    body("name")
+    .notEmpty()
+    .withMessage("Project name required"),
+
+    body("description")
+    .notEmpty()
+    .optional()
+  ]
+}
+
+const addMemberToProjectValidator = () => {
+  return [
+    body("email")
+    .trim()
+    .notEmpty()
+    .withMessage("Email is required")
+    .isEmail()
+    .withMessage("Email is invalid"),
+
+    body("role")
+    .notEmpty()
+    .withMessage("Role is required")
+    .isIn(AvailableUserRoles)
+    .withMessage("Role is invalid")
+  ]
+}
+
+
+
+
 export {
   userRegisterValidator,
   userForgotPasswordValidator,
   userChangeCurrentPasswordValidator,
   userLoginValidator,
   userResetPasswordValidator,
+  createProjectValidator,
+  addMemberToProjectValidator,
+  
 }

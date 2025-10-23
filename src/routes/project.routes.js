@@ -1,5 +1,25 @@
 import { Router } from "express";
+import {
+    createProject,
+    deleteProject,
+    updateProject,
+    addMemberToProject,
+    deleteMember,
+    updateMemberRole,
+    getProjectById,
+    getProjects,
+    getProjectMembers,
+} from "../controllers/project.controllers";
 
-const router = Router();
+import {addMemberToProjectValidator, createProjectValidator} from "../validators/index.js";
+import {UserRolesEnum, AvailableUserRoles} from "../utils/constants.js"
+import { validate } from "../middlewares/validator.middleware";
 
-export default router;
+
+
+
+const projectRouter = Router();
+
+projectRouter.route("/create-project").post()
+
+export default projectRouter;
