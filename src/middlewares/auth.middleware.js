@@ -4,7 +4,7 @@ import { ApiError } from "../utils/api-error.js";
 import { ApiResponse } from "../utils/api-response.js";
 import mongoose from "mongoose";
 import { asyncHandler } from "../utils/async-handler.js";
-import { projectMember } from "../models/projectmember.models.js";
+import { ProjectMember } from "../models/projectmember.models.js";
 
 
 // verifyJWT
@@ -37,13 +37,13 @@ export const verifyJWT = asyncHandler(async(req, res, next) => {
 // validateProjectPermission
 
 export const validateProjectPermission = ( roles = []) => {
-    asyncHandler(async(req, res, next) => {
+    return asyncHandler(async(req, res, next) => {
         const {projectId} = req.params;
 
         if (!projectId) {
             throw new ApiError(404, "Project id is missing");
         } 
-        const project = await projectMember.findOne({
+        const project = await ProjectMember.findOne({
             project: new mongoose.Types.ObjectId(projectId),
             user: new mongoose.Types.ObjectId(req.user._id)
         }) 
@@ -59,5 +59,7 @@ export const validateProjectPermission = ( roles = []) => {
         if(!roles.includes(givenRole)) {
             throw new ApiError(403,"You do not have permission to perform this action");
         }
+
+        next();
     })
 }

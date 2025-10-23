@@ -19,14 +19,14 @@ const getProjects = asyncHandler(async (req, res) => {
     },
     {
         $lookup: {
-            from : "project",
+            from : "projects",
             localField: "project",
             foreignField: "_id",
-            as : "projects",
+            as : "project",
             pipeline: [
                 {
                     $lookup: {
-                        from : "projectmember",
+                        from : "projectmembers",
                         localField: "_id",
                         foreignField: "project",
                         as: "projectmembers"
@@ -35,16 +35,16 @@ const getProjects = asyncHandler(async (req, res) => {
                 {
                     $addFields: {
                         members: {
-                            $size: "projectmembers"
+                            $size: "$projectmembers"
                         }
                     }
                 },
-            ]
+            ],
 
         },
     },
     {
-        $unwind : "project"
+        $unwind : "$project"
     },
     {
         $project: {
@@ -195,7 +195,7 @@ const getProjectMembers = asyncHandler(async(req, res) => {
     const projectMembers = await ProjectMember.aggregate([
         {
             $match: {
-                project: new mongoose.Types.ObjectId(projectid),
+                project: new mongoose.Types.ObjectId(projectId),
             }
         },
         {
@@ -251,7 +251,7 @@ const updateMemberRole = asyncHandler(async(req, res)=> {
         throw new ApiError(404,"Invalid user role");
     }
 
-    const projectMember = await projectMember.findOne({
+    const projectMember = await ProjectMember.findOne({
         project: new mongoose.Types.ObjectId(projectId),
         user: new mongoose.Types.ObjectId(userId)
     });
