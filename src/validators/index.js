@@ -118,6 +118,15 @@ const addMemberToProjectValidator = () => {
   ]
 }
 
+const createNoteValidator = () => {
+  return [
+    body("content")
+    .notEmpty()
+    .withMessage("content is required")
+
+  ]
+}
+
 
 
 
@@ -129,5 +138,6 @@ export {
   userResetPasswordValidator,
   createProjectValidator,
   addMemberToProjectValidator,
+  createNoteValidator
   
 }
