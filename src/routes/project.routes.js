@@ -40,7 +40,7 @@ projectRouter
 .post(validateProjectPermission([UserRolesEnum.ADMIN]), addMemberToProjectValidator(), validate, addMemberToProject);
 
 projectRouter
-.route("/:projectId/members/userId")
+.route("/:projectId/members/:userId")
 .put(validateProjectPermission([UserRolesEnum.ADMIN]), validate, updateMemberRole)
 .delete(validateProjectPermission([UserRolesEnum.ADMIN]), deleteMember);
 

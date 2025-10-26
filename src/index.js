@@ -11,7 +11,7 @@ import express from "express";
 
 const PORT = process.env.PORT || 8000;
 dotenv.config({
-    path: "./.env"  // path
+    path: "./.env" // path
 })
 
 app.use(express.json());
@@ -19,7 +19,6 @@ app.use(express.urlencoded({extended: true}));
 app.use(cookieParser());
 app.use("/api/v1/users", authRouter);
 app.use("/api/v1/projects", projectRouter);
-app.use("/api/v1/project/", noteRouter);
 
 app.use(errorHandler);
 
