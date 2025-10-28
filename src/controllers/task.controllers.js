@@ -3,10 +3,12 @@ import { asyncHandler } from "../utils/async-handler";
 import {User} from "../models/user.models.js";
 import { Project } from "../models/project.models.js";
 import {Task} from "../models/task.models.js";
-import {subTask} from "../models/subtask.models.js";
+import {SubTask, subTask} from "../models/subtask.models.js";
 import { ApiResponse } from "../utils/api-response";
 import { ApiError } from "../utils/api-error";
 import { UserRolesEnum, AvailableUserRoles } from "../utils/constants";
+import { assign } from "nodemailer/lib/shared/index.js";
+import { ExpressValidator } from "express-validator";
 
 const getTasks = asyncHandler(async(req, res) => {
     const {projectId} = req.params;
@@ -157,7 +159,147 @@ const updateTask = asyncHandler(async(req, res) => {
     const existingTask = await Task.findById(taskId);
 
     if(!existingTask) {
-        throw new ApiError(404,"Task not found")
+        throw new ApiError(404,"Task not found");
     }
 
+    const existingAttachments = existingTask.attachments || [];
+
+    const files = req.files || [];
+
+    const newAttachments = files.map((file) => {
+        return {
+            url : `${process.env.SERVER_URL}/images/${file.originalname}`,
+            mimetype: file.mimetype,
+            size : file.size,
+        }
+    });
+
+    const allAttachments = [...existingAttachments, ...newAttachments];
+
+    const updateFields = {
+        attachments: allAttachments,
+        assignedBy : new mongoose.Types.ObjectId(req.user._id)
+    }
+
+    if(title !== undefined) updateFields.title = title;
+    if(description !== undefined) updateFields.description = description;
+    if(status !== undefined) updateFields.status = status;
+
+    if(assignedTo !== undefined) {
+        updateFields.assignedTo = assignedTo ? new mongoose.Types.ObjectId(assignedTo) : undefined;
+    }
+    else if(existingTask.assignedTo) {
+        updateFields.assignedTo = existingTask.assignedTo;
+    }
+
+    console.log("update fields: ", updateFields);
+
+    const task = await Task.findByIdAndUpdate(taskId,
+        updateFields, {
+            new: true,
+        }
+    ).populate("assignedTo", "username fullName avatar");
+
+    console.log("updated task: ", task);
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200, task, "Task updated successfully"));
+
 })
+
+// deleteTask
+
+const deleteTask = asyncHandler(async(req, res) => {
+    const {taskId, projectId} = req.params;
+
+    const deletedTask = await Task.findByIdAndDelete(taskId);
+    if(!deletedTask) {
+        throw new ApiError(404,"Task not found");
+    }
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200,deletedTask, "Task deleted successfully"));
+})
+
+// createSubtask
+
+const createSubtask = asyncHandler(async(req, res) => {
+    const {taskId} = req.params;
+    const {title} = req.body;
+
+    if(!title) {
+        throw new ApiError(400,"Title is required");
+    }
+
+    const task = await Task.findById(taskId);
+    if(!task) {
+        throw new ApiError(404,"Task not found");
+    }
+
+    const subTask = await SubTask.create({
+        title,
+        task: new mongoose.Types.ObjectId(taskid),
+        createdBy: new mongoose.Types.ObjectId(req.user._id),
+    })
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200, subTask,"Subtask created successfully"));
+})
+
+// updateSubtask 
+
+const updateSubtask = asyncHandler(async(req, res) => {
+    const {subtaskId} = req.params;
+    const {title, isCompleted} = req.body;
+
+    let subTask = await SubTask.findById(subtaskId);
+
+    if(subTask) {
+        throw new ApiError(404,"Subtask not found");
+    }
+
+    subTask = await SubTask.findByIdAndUpdate(
+        subtaskId,
+        {
+            title: [UserRolesEnum.ADMIN, UserRolesEnum.PROJECT_ADMIN].includes(req?.user?.role) ? title : undefined,
+            isCompleted,
+        },
+        {
+            new: true
+        }
+    );
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200,subTask,"Subtask updated successfully"));
+});
+
+// delete Subtask
+
+const deleteSubtask = asyncHandler(async(req, res) => {
+    const {subtaskId} = req.params;
+    const deletedSubtask = await SubTask.findByIdAndDelete(subtaskId);
+
+    if(!deletedSubtask) {
+        throw new ApiError(404,"Subtask not found");
+    }
+
+    return res
+    .status(200)
+    .json(new ApiResponse(200, subTask, "Subtask deleted successfully"));
+
+});
+
+export {
+    createTask,
+    deleteTask,
+    updateTask,
+    getTaskById,
+    getTasks,
+    createSubtask,
+    updateSubtask,
+    deleteSubtask
+}
