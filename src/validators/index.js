@@ -127,6 +127,43 @@ const createNoteValidator = () => {
   ]
 }
 
+const createTaskValidator = () => {
+  return [
+    body("title")
+    .optional(),
+
+    body("description")
+    .optional(),
+
+    body("status")
+    .optional()
+    .isIn(AvailableTaskStatuses)
+    .withMessage("Status is invalid"),
+
+    body("assignedTo")
+    .optional()
+  ];
+};
+
+const updateTaskValidator = () => {
+  return [
+   body("title")
+   .optional(),
+
+   body("description")
+   .optional(),
+
+   body("status")
+   .optional()
+   .isIn(AvailableTaskStatuses)
+   .withMessage("Status is invalid"),
+
+
+   body("assignedTo")
+   .optional()
+  ];
+};
+
 
 
 
@@ -138,6 +175,8 @@ export {
   userResetPasswordValidator,
   createProjectValidator,
   addMemberToProjectValidator,
-  createNoteValidator
+  createNoteValidator,
+  createTaskValidator,
+  updateTaskValidator
   
 }
