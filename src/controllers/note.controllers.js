@@ -5,6 +5,9 @@ import { ApiResponse } from "../utils/api-response.js";
 import { ApiError } from "../utils/api-error.js";
 import { Project } from "../models/project.models.js";
 
+
+// getNotes
+
 const getNotes = asyncHandler(async (req, res) => {
     const {projectId} = req.params;
 
@@ -23,6 +26,8 @@ const getNotes = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200,notes, "notes fetched successfullly"))
 })
+
+// createNote
 
 const createNote = asyncHandler(async(req, res) => {
     const {projectId} = req.params;
@@ -61,7 +66,7 @@ const createNote = asyncHandler(async(req, res) => {
 const deleteNote = asyncHandler(async(req, res) => {
     const {noteId} = req.params;
 
-    const note = ProjectNote.findByIdAndDelete(noteId);
+    const note = await ProjectNote.findByIdAndDelete(noteId);
     if(!note) {
         throw new ApiError(404,"Note not found");
     }
@@ -89,7 +94,7 @@ const updateNote = asyncHandler(async(req, res) => {
         {new: true},
     ).populate("createdBy", "username fullName avatar");
 
-    if(note) {
+    if(!note) {
         throw new ApiError(400,"Note can't be updated");
     }
 
@@ -103,7 +108,7 @@ const updateNote = asyncHandler(async(req, res) => {
 const getNoteById = asyncHandler(async(req, res) => {
     const {noteId} = req.params;
 
-    const note = await ProjectNote.findById(noteId).populate("createBy", "username fullName avatar");
+    const note = await ProjectNote.findById(noteId).populate("createdBy", "username fullName avatar");
 
     if(!note) {
         throw new ApiError(404, "Note not found");

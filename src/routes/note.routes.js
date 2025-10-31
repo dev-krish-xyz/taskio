@@ -5,17 +5,18 @@ import {createNote,
     getNoteById,
     getNotes,
 }  from "../controllers/note.controllers.js";
-const noteRouter = Router();
 import {createNoteValidator} from "../validators/index.js";
 import {validate} from "../middlewares/validator.middleware.js";
 import { AvailableUserRoles, UserRolesEnum } from "../utils/constants.js";
 import {validateProjectPermission, verifyJWT} from "../middlewares/auth.middleware.js";
+import router from "./healthcheck.routes.js";
 
+const noteRouter = Router({mergeParams: true});
 
 noteRouter.use(verifyJWT);
 
 noteRouter
-.route("/:projectId")
+.route("/")
 .get(validateProjectPermission(AvailableUserRoles), getNotes)
 .post(
     validateProjectPermission([UserRolesEnum.ADMIN]),
@@ -25,7 +26,7 @@ noteRouter
 )
 
 noteRouter
-.route("/:projectId/n/:noteId")
+.route("/:noteId")
 .get(validateProjectPermission(AvailableUserRoles),
 getNoteById)
 .put(validateProjectPermission([UserRolesEnum.ADMIN]),
