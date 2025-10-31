@@ -21,8 +21,8 @@ app.use(express.urlencoded({extended: true}));
 app.use(cookieParser());
 app.use("/api/v1/users", authRouter); // checked succesfully
 app.use("/api/v1/projects", projectRouter); // checked successfully
-app.use("/api/v1/projects", taskRouter);
-app.use("/api/v1/projects", noteRouter);
+app.use("/api/v1/projects/:projectId/tasks", taskRouter);
+app.use("/api/v1/projects/:projectId/notes", noteRouter);
 
 
 

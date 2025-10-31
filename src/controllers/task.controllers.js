@@ -1,12 +1,12 @@
 import mongoose, { mongo, MongooseError } from "mongoose";
-import { asyncHandler } from "../utils/async-handler";
+import { asyncHandler } from "../utils/async-handler.js";
 import {User} from "../models/user.models.js";
 import { Project } from "../models/project.models.js";
 import {Task} from "../models/task.models.js";
-import {SubTask, subTask} from "../models/subtask.models.js";
-import { ApiResponse } from "../utils/api-response";
-import { ApiError } from "../utils/api-error";
-import { UserRolesEnum, AvailableUserRoles } from "../utils/constants";
+import {SubTask} from "../models/subtask.models.js";
+import { ApiResponse } from "../utils/api-response.js";
+import { ApiError } from "../utils/api-error.js";
+import { UserRolesEnum, AvailableUserRoles } from "../utils/constants.js";
 import { assign } from "nodemailer/lib/shared/index.js";
 import { ExpressValidator } from "express-validator";
 
@@ -240,7 +240,7 @@ const createSubtask = asyncHandler(async(req, res) => {
 
     const subTask = await SubTask.create({
         title,
-        task: new mongoose.Types.ObjectId(taskid),
+        task: new mongoose.Types.ObjectId(taskId),
         createdBy: new mongoose.Types.ObjectId(req.user._id),
     })
 
@@ -257,7 +257,7 @@ const updateSubtask = asyncHandler(async(req, res) => {
 
     let subTask = await SubTask.findById(subtaskId);
 
-    if(subTask) {
+    if(!subTask) {
         throw new ApiError(404,"Subtask not found");
     }
 
@@ -281,6 +281,9 @@ const updateSubtask = asyncHandler(async(req, res) => {
 
 const deleteSubtask = asyncHandler(async(req, res) => {
     const {subtaskId} = req.params;
+    console.log(subtaskId);
+    const found = await SubTask.findById(subtaskId);
+    console.log(found);
     const deletedSubtask = await SubTask.findByIdAndDelete(subtaskId);
 
     if(!deletedSubtask) {
@@ -289,7 +292,7 @@ const deleteSubtask = asyncHandler(async(req, res) => {
 
     return res
     .status(200)
-    .json(new ApiResponse(200, subTask, "Subtask deleted successfully"));
+    .json(new ApiResponse(200, deletedSubtask, "Subtask deleted successfully"));
 
 });
 

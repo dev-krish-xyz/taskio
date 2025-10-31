@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
-import {ProjectNote} from "../models/note.models";
-import { asyncHandler } from "../utils/async-handler";
-import { ApiResponse } from "../utils/api-response";
-import { ApiError } from "../utils/api-error";
-import { Project } from "../models/project.models";
+import {ProjectNote} from "../models/note.models.js";
+import { asyncHandler } from "../utils/async-handler.js";
+import { ApiResponse } from "../utils/api-response.js";
+import { ApiError } from "../utils/api-error.js";
+import { Project } from "../models/project.models.js";
 
 const getNotes = asyncHandler(async (req, res) => {
     const {projectId} = req.params;

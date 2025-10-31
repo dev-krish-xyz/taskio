@@ -4,7 +4,7 @@ import {createNote,
     updateNote,
     getNoteById,
     getNotes,
-}  from "../controllers/note.controllers";
+}  from "../controllers/note.controllers.js";
 const noteRouter = Router();
 import {createNoteValidator} from "../validators/index.js";
 import {validate} from "../middlewares/validator.middleware.js";

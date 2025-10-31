@@ -21,14 +21,15 @@ import { upload } from "../middlewares/multer.middleware.js";
 import { validate } from "../middlewares/validator.middleware.js";
 import { AvailableUserRoles, UserRolesEnum } from "../utils/constants.js";
 
-const taskRouter = Router();
+const taskRouter = Router({mergeParams: true});
 
 taskRouter.use(verifyJWT);
 
 taskRouter
-  .route("/:projectId")
+  .route("/")
   .get(validateProjectPermission(AvailableUserRoles), getTasks)
   .post(
+    
     validateProjectPermission([
       UserRolesEnum.ADMIN,
       UserRolesEnum.PROJECT_ADMIN,
@@ -40,7 +41,7 @@ taskRouter
   );
 
 taskRouter
-  .route("/:projectId/t/:taskId")
+  .route("/:taskId")
   .get(validateProjectPermission(AvailableUserRoles), getTaskById)
   .put(
     validateProjectPermission([
@@ -60,13 +61,13 @@ taskRouter
     deleteTask,
   );
 
-  taskRouter.route("/projectId/st/:subtaskId")
+  taskRouter.route("/:taskId/subtasks")
   .post(validateProjectPermission([
     UserRolesEnum.ADMIN,
     UserRolesEnum.PROJECT_ADMIN,
   ]), createSubtask );
 
-  taskRouter.route("/projectId/st/:subtaskId")
+  taskRouter.route("/:taskId/subtasks/:subtaskId")
   .put(validateProjectPermission(AvailableUserRoles), updateSubtask)
   .delete(validateProjectPermission([
     UserRolesEnum.ADMIN,
