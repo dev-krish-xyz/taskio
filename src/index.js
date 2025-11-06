@@ -8,6 +8,7 @@ import noteRouter from "./routes/note.routes.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
 import cookieParser from "cookie-parser";
 import express from "express";
+import oauthRouter from "./routes/oauth.routes.js";
 
 
 
@@ -16,13 +17,20 @@ dotenv.config({
     path: "./.env" // path
 })
 
+// body parsers
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
+
+// cookie parser
 app.use(cookieParser());
+
+
+// routes
 app.use("/api/v1/users", authRouter); // checked succesfully
 app.use("/api/v1/projects", projectRouter); // checked successfully
 app.use("/api/v1/projects/:projectId/tasks", taskRouter); // checked successfully
 app.use("/api/v1/projects/:projectId/notes", noteRouter); // checked successfully
+app.use("/api/v1/auth",oauthRouter );
 
 
 

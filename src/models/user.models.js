@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { stringify } from "querystring";
+import { type } from "os";
 
 
 const userSchema = new Schema(
@@ -57,6 +58,19 @@ const userSchema = new Schema(
     },
     emailVerificationExpiry: {
       type: Date,
+    },
+    // Oauth specific routes
+    oauthProvider: {
+      type: stringify,
+      enum : ["google","github", null],
+      default: null,
+    },
+    oauthId: {
+      type: String,
+      sparse: true,
+    },
+    oauthAvatar: {
+      type: String,
     },
   },
   {
