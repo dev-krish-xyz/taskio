@@ -5,7 +5,9 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "nodemon src/index.js"
+    "start": "nodemon src/index.js",
+    "start:prod": "node src/index.js",
+    "dev": "concurrently --names \"backend,frontend\" --prefix-colors \"cyan,magenta\" \"npm start\" \"npm run dev --prefix frontend\""
   },
   "keywords": [],
   "author": "",
@@ -22,13 +24,13 @@
     "mailgen": "^2.0.30",
     "mongoose": "^8.18.1",
     "multer": "^2.0.2",
-    "nodemailer": "^7.0.6",
     "passport": "^0.7.0",
     "passport-github2": "^0.1.12",
     "passport-google-oauth20": "^2.0.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10",
+    "concurrently": "^9.2.1",
+    "nodemon": "^3.1.14",
     "prettier": "^3.6.2"
   }
 }

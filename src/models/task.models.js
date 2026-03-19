@@ -4,14 +4,12 @@ import { TaskStatusEnum, AvailableTaskStatuses } from "../utils/constants.js";
 const taskSchema = new Schema({
     title: {
         type: String,
-        unique: true,
         trim: true,
         required: true,
     },
     description: {
         type: String,
         required: true,
-
     },
     project: {
         type: Schema.Types.ObjectId,
@@ -21,7 +19,7 @@ const taskSchema = new Schema({
     assignedTo: {
         type: Schema.Types.ObjectId,
         ref: "User",
-        required: true,
+        required: false,
     },
     assignedBy: {
         type: Schema.Types.ObjectId,
@@ -30,14 +28,14 @@ const taskSchema = new Schema({
     },
     status: {
         type: String,
-        enum: AvailableTaskStatuses,  // array
+        enum: AvailableTaskStatuses,
         default: TaskStatusEnum.TODO,
     },
     attachments: {
         type: [
             {
                 url: String,
-                mimetype:String,
+                mimetype: String,
                 size: Number,
             }
         ],
@@ -45,7 +43,6 @@ const taskSchema = new Schema({
     }
 }, {
     timestamps: true
-})
-
+});
 
 export const Task = mongoose.model("Task", taskSchema);

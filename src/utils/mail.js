@@ -1,5 +1,6 @@
 import Mailgen from "mailgen";
-import nodemailer from "nodemailer";
+
+const RESEND_API_URL = "https://api.resend.com/emails";
 
 const sendEmail = async (options) => {
   const mailGenerator = new Mailgen({
@@ -15,31 +16,42 @@ const sendEmail = async (options) => {
 
   const emailHtml = mailGenerator.generate(options.mailgenContent);
 
-  const transporter = nodemailer.createTransport({
-    host: process.env.MAILTRAP_SMTP_HOST,
-    port: process.env.MAILTRAP_SMTP_PORT, // true for 465, false for other ports
-    auth: {
-      user: process.env.MAILTRAP_SMTP_USER,
-      pass: process.env.MAILTRAP_SMTP_PASS,
-    },
-  });
+  const apiKey = process.env.RESEND_API_KEY;
+  const emailFrom = process.env.EMAIL_FROM;
+
+  if (!apiKey || !emailFrom) {
+    console.error("[mail] Missing RESEND_API_KEY or EMAIL_FROM. Email not sent.");
+    return;
+  }
 
   const mail = {
-    from: "mail.taskio@example.com",
-    to: options.email,
+    from: emailFrom,
+    to: [options.email],
     subject: options.subject,
-    text: emailTextual, // plain‑text body
-    html: emailHtml, // HTML body
+    text: emailTextual,
+    html: emailHtml,
   };
 
   try {
-    await transporter.sendMail(mail);
-  }
-  catch (error) {
-    console.error(
-        "Email service failed silently. Make sure you have provided your MAILTRAP credentials in the .env file"
-    );
-    console.error("Error: ", error);
+    const response = await fetch(RESEND_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(mail),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`Resend API failed (${response.status}): ${errorBody}`);
+    }
+
+    const data = await response.json();
+    console.log(`[mail] sent to ${options.email} — id: ${data?.id || "unknown"}`);
+  } catch (error) {
+    console.error(`[mail] FAILED to send to ${options.email}`);
+    console.error(error);
   }
 
 

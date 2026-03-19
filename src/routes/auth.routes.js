@@ -13,6 +13,7 @@ import {
     refreshAccessToken,
     getCurrentUser,
     deleteAccount,
+    updateAvatar,
 } from "../controllers/auth.controllers.js";
 
 import {
@@ -23,6 +24,7 @@ import {
     userResetPasswordValidator
 } from "../validators/index.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { upload } from "../middlewares/multer.middleware.js";
 
 
 
@@ -56,6 +58,7 @@ authRouter.route("/protected").get(verifyJWT, (req, res)=> {
 
 authRouter.route("/delete-account").post(verifyJWT,deleteAccount);
 
+authRouter.route("/update-avatar").post(verifyJWT, upload.single("avatar"), updateAvatar);
 
 export default authRouter;
 

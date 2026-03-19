@@ -2,9 +2,6 @@ import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import { stringify } from "querystring";
-import { type } from "os";
-
 
 const userSchema = new Schema(
   {
@@ -59,10 +56,9 @@ const userSchema = new Schema(
     emailVerificationExpiry: {
       type: Date,
     },
-    // Oauth specific routes
     oauthProvider: {
-      type: stringify,
-      enum : ["google","github", null],
+      type: String,
+      enum : ["google", "github", null],
       default: null,
     },
     oauthId: {
@@ -78,11 +74,9 @@ const userSchema = new Schema(
   },
 );
 
-// query helper function
-
-userSchema.query.safe = function (extra ="") {
-  return this.select("-password -refreshToken -emailVerificationToken -emailVerificationExpiry")
-}
+userSchema.query.safe = function () {
+  return this.select("-password -refreshToken -emailVerificationToken -emailVerificationExpiry");
+};
 
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
@@ -113,7 +107,6 @@ userSchema.methods.generateRefreshToken = async function () {
     {
       _id: this._id,
     },
-
     process.env.REFRESH_TOKEN_SECRET,
     {
       expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
@@ -121,19 +114,16 @@ userSchema.methods.generateRefreshToken = async function () {
   );
 };
 
-userSchema.methods.generateTemporaryToken = async  function () {
+userSchema.methods.generateTemporaryToken = function () {
   const unHashedToken = crypto.randomBytes(20).toString("hex");
   const hashedToken = crypto
     .createHash("sha256")
     .update(unHashedToken)
     .digest("hex");
 
-  const tokenExpiry = Date.now() + 20 * 60 * 1000; //20 mins in st
+  const tokenExpiry = Date.now() + 20 * 60 * 1000;
 
   return { hashedToken, unHashedToken, tokenExpiry };
 };
 
 export const User = mongoose.model("User", userSchema);
-
-// defining the user schemas
-

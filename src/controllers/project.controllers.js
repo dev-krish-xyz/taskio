@@ -1,4 +1,4 @@
-import mongoose, { mongo } from "mongoose";
+import mongoose from "mongoose";
 import {Project} from "../models/project.models.js";
 import {ProjectMember} from "../models/projectmember.models.js"
 import { ApiError } from "../utils/api-error.js";
@@ -47,17 +47,24 @@ const getProjects = asyncHandler(async (req, res) => {
         $unwind : "$project"
     },
     {
+        $replaceRoot: {
+            newRoot: {
+                $mergeObjects: [
+                    "$project",
+                    { memberCount: "$project.members" }
+                ]
+            }
+        }
+    },
+    {
         $project: {
-            project: {
-                _id: 1,
-                name: 1,
-                description: 1,
-                members: 1,
-                createdAt: 1,
-                createdBy: 1,
-            },
-            role: 1,
-            _id: 0
+            _id: 1,
+            name: 1,
+            description: 1,
+            memberCount: 1,
+            createdAt: 1,
+            createdBy: 1,
+            updatedAt: 1,
         }
     }
   ])
@@ -210,6 +217,7 @@ const getProjectMembers = asyncHandler(async(req, res) => {
                             _id: 1,
                             username: 1,
                             fullName: 1,
+                            email: 1,
                             avatar: 1
                         }
                     }
@@ -229,8 +237,7 @@ const getProjectMembers = asyncHandler(async(req, res) => {
                 user: 1,
                 role: 1,
                 createdAt : 1,
-                createdBy: 1,
-                _id: 0
+                _id: 1
             }
         }
     ]);

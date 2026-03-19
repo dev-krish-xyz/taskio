@@ -104,11 +104,14 @@ const createProjectValidator = () => {
 const addMemberToProjectValidator = () => {
   return [
     body("email")
+    .optional({ checkFalsy: true })
     .trim()
-    .notEmpty()
-    .withMessage("Email is required")
     .isEmail()
     .withMessage("Email is invalid"),
+
+    body("username")
+    .optional({ checkFalsy: true })
+    .trim(),
 
     body("role")
     .notEmpty()
